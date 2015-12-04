@@ -8,6 +8,8 @@
 **   lfs.chdir (path)
 **   lfs.currentdir ()
 **   lfs.dir (path)
+**   lfs.link (old, new[, symlink])
+**   lfs.readlink (path)
 **   lfs.lock (fh, mode)
 **   lfs.lock_dir (path)
 **   lfs.mkdir (path)
@@ -66,7 +68,7 @@
 
 #include "lfs.h"
 
-#define LFS_VERSION "1.6.3"
+#define LFS_VERSION "1.6.4"
 #define LFS_LIBNAME "lfs"
 
 #if LUA_VERSION_NUM >= 503 /* Lua 5.3 */
@@ -862,6 +864,22 @@ static int link_info (lua_State *L) {
 }
 
 
+static int read_link (lua_State *L) {
+	const char *file = luaL_checkstring (L, 1);
+	char path[LFS_MAXPATHLEN];
+	ssize_t size = readlink(file, path, LFS_MAXPATHLEN-1);
+	if (size > 0) {
+		path[size+1] = 0;
+		lua_pushstring(L, path);
+		return 1;
+	} else {
+                lua_pushnil (L);
+                lua_pushfstring (L, "cannot obtain link from file `%s'", file);
+                return 2;
+	}
+}
+
+
 /*
 ** Assumes the table is on top of the stack.
 */
@@ -884,6 +902,7 @@ static const struct luaL_Reg fslib[] = {
         {"currentdir", get_dir},
         {"dir", dir_iter_factory},
         {"link", make_link},
+        {"readlink", read_link},
         {"lock", file_lock},
         {"mkdir", make_dir},
         {"rmdir", remove_dir},
