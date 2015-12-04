@@ -17,7 +17,7 @@ src/lfs.so: $(OBJS)
 test: lib
 	LUA_CPATH=./src/?.so lua tests/test.lua
 
-install:
+install: lib
 	mkdir -p $(LUA_LIBDIR)
 	cp src/lfs.so $(LUA_LIBDIR)
 
